@@ -4,16 +4,6 @@
 #include "User.h"
 #include "Trip.h"
 
-
-struct MatchUser {
-	std::string m_Email;
-	MatchUser(const std::string &email) :m_Email{ email } {
-
-	}
-	bool operator()(User *user)const {
-		return m_Email == user->GetEmailId();
-	}
-};
 BookingManager::BookingManager() {
 }
 
@@ -31,12 +21,11 @@ void BookingManager::Register(User * pUser) {
 
 void BookingManager::BookCab(const std::string & email) {
 	//Book the cab
-	std::vector<User*>::iterator it = find_if(m_Users.begin(), m_Users.end(), MatchUser{ email });
-	if (it == m_Users.end()) {
+	if (IsRegistered(email)) {
 		std::cout << "You need to register before you can book a cab" << std::endl;
 		return;
 	}
-	m_pCurrentUser = *it;
+	m_pCurrentUser = GetUser(email);
 }
 
 void BookingManager::Start(Trip * p) {
@@ -52,11 +41,15 @@ void BookingManager::End() {
 	m_pCurrentUser = nullptr;
 }
 bool BookingManager::IsRegistered(const std::string & email) {
-	std::vector<User*>::iterator it= find_if(m_Users.begin(), m_Users.end(), MatchUser{ email });
-	return it != m_Users.end();
+	User* user = GetUser(email);
+	if (user) {
+		return true;
+	}
+	return false;
 }
 
 User * BookingManager::GetUser(const std::string & email) {
-	std::vector<User*>::iterator it = find_if(m_Users.begin(), m_Users.end(), MatchUser{ email });
+	std::vector<User*>::iterator it = find_if(m_Users.begin(), m_Users.end(),
+		[&email](User* user) { return user->GetEmailId() == email; });
 	return (it != m_Users.end() ? *it : nullptr);
 }
